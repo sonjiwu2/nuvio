@@ -1,0 +1,58 @@
+# ── Secrets ──────────────────────────────────────────────────────────────
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+credentials*
+secrets*
+
+# ── Claude Code (dev-only tooling, not part of the public repo) ─────────
+CLAUDE.md
+.claude/
+
+# ── Go ───────────────────────────────────────────────────────────────────
+*.exe
+*.exe~
+*.test
+*.out
+coverage.out
+coverage.html
+*.prof
+/bin/
+
+# ── Wails build output ───────────────────────────────────────────────────
+build/bin/
+frontend/package.json.md5
+
+# ── Frontend (Node / Vite) ────────────────────────────────────────────────
+# frontend/wailsjs is intentionally NOT ignored: it's Wails' generated Go
+# bindings, but committing it lets `npm run typecheck`/`lint`/`build` work
+# from a fresh clone without requiring the Go toolchain first. Regenerate
+# it with `wails generate module` after changing any bound App method.
+frontend/node_modules/
+frontend/dist/
+frontend/.vite/
+*.tsbuildinfo
+npm-debug.log*
+
+# ── Nuvio runtime data (application state, not repo fixtures) ────────────
+/runtime/
+*.db
+*.db-wal
+*.db-shm
+*.db-journal
+!internal/**/testdata/**/*.db
+nuvio.log
+
+# ── IDE ──────────────────────────────────────────────────────────────────
+.idea/
+.vscode/*
+!.vscode/extensions.json
+
+# ── OS ───────────────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+Desktop.ini
