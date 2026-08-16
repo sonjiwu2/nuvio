@@ -1,0 +1,88 @@
+/**
+ * Design tokens for Nuvio's light theme.
+ *
+ * Every color, spacing, radius, and type value used in the app should come
+ * from here. Component CSS reads these variables instead of hardcoding
+ * hex/px values so the whole app stays visually consistent and a dark
+ * theme can be added later by redefining this block alone.
+ */
+:root {
+  /* Surfaces */
+  --color-bg-app: #f7f8fa;
+  --color-bg-surface: #ffffff;
+  --color-bg-surface-hover: #f5f6f8;
+  --color-bg-sunken: #f1f2f5;
+
+  /* Borders */
+  --color-border: #e7e9ee;
+  --color-border-subtle: #eef0f4;
+
+  /* Text */
+  --color-text-primary: #14171f;
+  --color-text-secondary: #64697a;
+  --color-text-tertiary: #9aa0ae;
+  --color-text-inverse: #ffffff;
+
+  /* Accent: blue (primary actions, active nav) */
+  --color-accent: #3b6ff2;
+  --color-accent-hover: #2f5cd6;
+  --color-accent-bg: #eef3ff;
+  --color-accent-text: #2f5cd6;
+
+  /* Secondary accents (used sparingly, one per semantic category) */
+  --color-teal: #12b3a0;
+  --color-teal-bg: #e9faf6;
+  --color-violet: #8859e6;
+  --color-violet-bg: #f3ecfe;
+  --color-amber: #e08a1f;
+  --color-amber-bg: #fdf3e3;
+
+  /* Semantic */
+  --color-success: #1caa6b;
+  --color-success-bg: #e8f8f0;
+  --color-warning: #e08a1f;
+  --color-warning-bg: #fdf3e3;
+  --color-danger: #e14b4b;
+  --color-danger-bg: #fdecec;
+
+  /* Spacing scale */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+
+  /* Radius */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-xl: 18px;
+  --radius-full: 999px;
+
+  /* Shadows */
+  --shadow-sm: 0 1px 2px rgba(16, 24, 40, 0.04);
+  --shadow-md: 0 4px 16px rgba(16, 24, 40, 0.06);
+
+  /* Typography */
+  --font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial, sans-serif;
+  --font-size-xs: 12px;
+  --font-size-sm: 13px;
+  --font-size-md: 14px;
+  --font-size-lg: 16px;
+  --font-size-xl: 20px;
+  --font-size-2xl: 24px;
+  --font-weight-regular: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+
+  /* Motion */
+  --transition-fast: 150ms ease;
+  --transition-base: 200ms ease;
+
+  /* Layout */
+  --sidebar-width: 232px;
+}
