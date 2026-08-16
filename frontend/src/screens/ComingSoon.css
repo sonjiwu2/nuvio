@@ -1,0 +1,17 @@
+.coming-soon {
+  max-width: 1400px;
+}
+
+.coming-soon-title {
+  margin: 0 0 var(--space-4);
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-primary);
+}
+
+.coming-soon-panel {
+  background: var(--color-bg-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+}
