@@ -6,10 +6,18 @@ export function CancelScan(arg1) {
   return window['go']['main']['App']['CancelScan'](arg1);
 }
 
+export function CancelSearch(arg1) {
+  return window['go']['main']['App']['CancelSearch'](arg1);
+}
+
 export function PickFolder() {
   return window['go']['main']['App']['PickFolder']();
 }
 
 export function StartScan(arg1) {
   return window['go']['main']['App']['StartScan'](arg1);
+}
+
+export function StartSearch(arg1, arg2) {
+  return window['go']['main']['App']['StartSearch'](arg1, arg2);
 }

@@ -3,6 +3,10 @@
 
 export function CancelScan(arg1:string):Promise<void>;
 
+export function CancelSearch(arg1:string):Promise<void>;
+
 export function PickFolder():Promise<string>;
 
 export function StartScan(arg1:string):Promise<string>;
+
+export function StartSearch(arg1:string,arg2:string):Promise<string>;
