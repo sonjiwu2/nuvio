@@ -1,0 +1,105 @@
+.storage-screen {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+  max-width: 1400px;
+}
+
+.storage-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-6);
+  flex-wrap: wrap;
+}
+
+.storage-title {
+  margin: 0;
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-primary);
+}
+
+.storage-subtitle {
+  margin: var(--space-1) 0 0;
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+}
+
+.storage-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.storage-root {
+  margin: calc(var(--space-3) * -1) 0 0;
+  font-size: var(--font-size-xs);
+  color: var(--color-text-tertiary);
+  word-break: break-all;
+}
+
+.storage-progress {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  padding: var(--space-2) 0;
+}
+
+.storage-progress-stats {
+  display: flex;
+  gap: var(--space-5);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+}
+
+.storage-progress-path {
+  margin: 0;
+  font-size: var(--font-size-xs);
+  color: var(--color-text-tertiary);
+  word-break: break-all;
+}
+
+.storage-cancelled-notice {
+  margin: 0;
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-md);
+  background: var(--color-warning-bg);
+  color: var(--color-text-primary);
+  font-size: var(--font-size-sm);
+}
+
+.storage-results {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
+.storage-metrics {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--space-4);
+}
+
+.storage-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-4);
+  align-items: start;
+}
+
+.storage-empty-note {
+  color: var(--color-text-tertiary);
+  font-size: var(--font-size-sm);
+  margin: 0;
+}
+
+@media (max-width: 1320px) {
+  .storage-metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .storage-grid {
+    grid-template-columns: 1fr;
+  }
+}
