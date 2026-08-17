@@ -4,6 +4,8 @@ import {rules} from '../models';
 
 export function AddRule(arg1:string,arg2:string):Promise<rules.Rule>;
 
+export function CancelDuplicateScan(arg1:string):Promise<void>;
+
 export function CancelOrganizePreview(arg1:string):Promise<void>;
 
 export function CancelScan(arg1:string):Promise<void>;
@@ -15,6 +17,8 @@ export function DeleteRule(arg1:string):Promise<void>;
 export function ListRules():Promise<Array<rules.Rule>>;
 
 export function PickFolder():Promise<string>;
+
+export function StartDuplicateScan(arg1:string):Promise<string>;
 
 export function StartOrganizePreview(arg1:string):Promise<string>;
 
