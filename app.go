@@ -7,6 +7,7 @@ import (
 
 	wailsruntime "github.com/wailsapp/wails/v2/pkg/runtime"
 
+	"github.com/sonjiwu2/nuvio/internal/duplicates"
 	"github.com/sonjiwu2/nuvio/internal/rules"
 	"github.com/sonjiwu2/nuvio/internal/scanner"
 	"github.com/sonjiwu2/nuvio/internal/search"
@@ -24,6 +25,7 @@ type App struct {
 	searchC    *search.Coordinator
 	rulesStore *rules.Store
 	previews   *rules.Coordinator
+	dupes      *duplicates.Coordinator
 }
 
 // NewApp creates a new App application struct. db is Nuvio's single
@@ -35,6 +37,7 @@ func NewApp(logger *slog.Logger, db *sql.DB) *App {
 		searchC:    search.NewCoordinator(),
 		rulesStore: rules.NewStore(db),
 		previews:   rules.NewCoordinator(),
+		dupes:      duplicates.NewCoordinator(),
 	}
 }
 
