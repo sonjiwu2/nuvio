@@ -410,39 +410,3 @@ func TestCoordinator_UnknownRootReportsFailure(t *testing.T) {
 		t.Fatal("OnFailed was never called for a missing root")
 	}
 }
-
-func TestTopK_KeepsOnlyLargestUpToCapacity(t *testing.T) {
-	k := newTopK[FileEntry](3)
-	sizes := []int64{5, 1, 9, 3, 7, 2, 8}
-	for i, s := range sizes {
-		k.Add(FileEntry{Name: string(rune('a' + i)), Size: s})
-	}
-
-	got := k.Sorted()
-	if len(got) != 3 {
-		t.Fatalf("len(Sorted()) = %d, want 3", len(got))
-	}
-	want := []int64{9, 8, 7}
-	for i, w := range want {
-		if got[i].Size != w {
-			t.Errorf("Sorted()[%d].Size = %d, want %d", i, got[i].Size, w)
-		}
-	}
-}
-
-func TestTopK_ConcurrentAddIsRaceFree(t *testing.T) {
-	k := newTopK[FileEntry](10)
-	var wg sync.WaitGroup
-	for i := 0; i < 100; i++ {
-		wg.Add(1)
-		go func(n int) {
-			defer wg.Done()
-			k.Add(FileEntry{Name: "f", Size: int64(n)})
-		}(i)
-	}
-	wg.Wait()
-
-	if len(k.Sorted()) != 10 {
-		t.Errorf("len(Sorted()) = %d, want 10", len(k.Sorted()))
-	}
-}

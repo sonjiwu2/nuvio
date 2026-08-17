@@ -20,6 +20,7 @@ import (
 	"time"
 
 	"github.com/sonjiwu2/nuvio/internal/fswalk"
+	"github.com/sonjiwu2/nuvio/internal/topk"
 )
 
 type counters struct {
@@ -35,9 +36,9 @@ type walker struct {
 	root string
 
 	counters     counters
-	topFiles     *topK[FileEntry]
-	topFolders   *topK[FolderEntry]
-	rootChildren *topK[FolderEntry]
+	topFiles     *topk.Collector[FileEntry]
+	topFolders   *topk.Collector[FolderEntry]
+	rootChildren *topk.Collector[FolderEntry]
 	currentPath  atomic.Pointer[string]
 
 	issuesMu sync.Mutex
@@ -67,9 +68,9 @@ func Walk(ctx context.Context, root string, opts Options, onProgress func(Progre
 		pool:         fswalk.NewPool(opts.Workers),
 		opts:         opts,
 		root:         root,
-		topFiles:     newTopK[FileEntry](opts.TopN),
-		topFolders:   newTopK[FolderEntry](opts.TopN),
-		rootChildren: newTopK[FolderEntry](rootChildrenCap),
+		topFiles:     topk.New[FileEntry](opts.TopN),
+		topFolders:   topk.New[FolderEntry](opts.TopN),
+		rootChildren: topk.New[FolderEntry](rootChildrenCap),
 	}
 
 	stopProgress := w.startProgressReporter(onProgress)

@@ -66,6 +66,9 @@ type FileEntry struct {
 	ModTime time.Time `json:"modTime"`
 }
 
+// Weight makes FileEntry usable with internal/topk's Collector.
+func (f FileEntry) Weight() int64 { return f.Size }
+
 // FolderEntry describes a single directory surfaced in the
 // largest-folders result. Size is the recursive total of everything
 // beneath it, not just its direct children.
@@ -74,6 +77,9 @@ type FolderEntry struct {
 	Name string `json:"name"`
 	Size int64  `json:"size"`
 }
+
+// Weight makes FolderEntry usable with internal/topk's Collector.
+func (f FolderEntry) Weight() int64 { return f.Size }
 
 // ScanIssue records a single path Nuvio could not fully read. One
 // inaccessible folder must never abort the rest of the scan — issues are
