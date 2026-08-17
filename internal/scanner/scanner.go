@@ -3,17 +3,11 @@
 // in-memory scan (no persistence) — see CLAUDE.md section 40 — designed to
 // stay responsive and bounded in memory on trees with millions of files.
 //
-// Cycle safety: the walker never follows symlinks or Windows junctions. A
-// directory entry is only recursed into after platform.IsReparsePoint
-// confirms it is a real directory, not a reparse point — os.DirEntry's own
-// fs.ModeSymlink bit turned out not to be reliable for this on Windows (an
-// NTFS junction is reported as a plain directory by os.ReadDir; see
-// internal/platform/reparse_windows.go and the test that caught this).
-// Reparse points are recorded as a leaf entry instead of being traversed.
-// Since regular filesystem directories cannot form cycles on their own (no
-// hardlinks to directories, no junctions once excluded), this makes
-// recursive cycles structurally impossible rather than something we have
-// to detect at runtime.
+// Cycle safety: the walker never follows symlinks or Windows junctions —
+// see internal/fswalk.Classify, which is what actually keeps traversal
+// cycles structurally impossible (os.DirEntry's own fs.ModeSymlink bit
+// turned out not to be reliable for this on Windows; an NTFS junction is
+// reported as a plain directory by os.ReadDir, a bug a test caught).
 package scanner
 
 import (
@@ -21,21 +15,12 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"runtime"
 	"sync"
 	"sync/atomic"
 	"time"
 
-	"github.com/sonjiwu2/nuvio/internal/platform"
+	"github.com/sonjiwu2/nuvio/internal/fswalk"
 )
-
-func defaultWorkerCount() int {
-	n := runtime.NumCPU()
-	if n < 2 {
-		n = 2
-	}
-	return n
-}
 
 type counters struct {
 	files atomic.Int64
@@ -45,7 +30,7 @@ type counters struct {
 
 type walker struct {
 	ctx  context.Context
-	sem  chan struct{}
+	pool *fswalk.Pool
 	opts Options
 	root string
 
@@ -79,7 +64,7 @@ func Walk(ctx context.Context, root string, opts Options, onProgress func(Progre
 
 	w := &walker{
 		ctx:          ctx,
-		sem:          make(chan struct{}, opts.Workers),
+		pool:         fswalk.NewPool(opts.Workers),
 		opts:         opts,
 		root:         root,
 		topFiles:     newTopK[FileEntry](opts.TopN),
@@ -138,21 +123,19 @@ func (w *walker) walkDir(dir string) int64 {
 
 		childPath := filepath.Join(dir, entry.Name())
 
-		if entry.IsDir() {
-			reparse, err := platform.IsReparsePoint(childPath)
-			if err != nil {
-				// Could not determine whether this is a real directory or
-				// a reparse point; the safe choice is to not traverse it.
-				w.recordIssue(childPath, err)
-				continue
-			}
-			if !reparse {
-				w.recurse(dir, childPath, &wg, &childMu, &childSize)
-				continue
-			}
-			// A symlink or NTFS junction: record it as a leaf entry below
-			// instead of recursing, which is what keeps cycles impossible.
+		kind, err := fswalk.Classify(childPath, entry)
+		if err != nil {
+			// Could not determine whether this is a real directory or a
+			// reparse point; the safe choice is to not traverse it.
+			w.recordIssue(childPath, err)
+			continue
 		}
+		if kind == fswalk.KindDirectory {
+			w.recurse(dir, childPath, &wg, &childMu, &childSize)
+			continue
+		}
+		// A file, or a symlink/junction: record it as a leaf entry below
+		// instead of recursing, which is what keeps cycles impossible.
 
 		info, err := entry.Info()
 		if err != nil {
@@ -199,7 +182,7 @@ func (w *walker) walkDir(dir string) int64 {
 // only to detect direct children of the scanned root for the Storage
 // Overview treemap.
 func (w *walker) recurse(parentDir, childPath string, wg *sync.WaitGroup, childMu *sync.Mutex, childSize *int64) {
-	run := func() {
+	w.pool.Go(wg, func() {
 		size := w.walkDir(childPath)
 		childMu.Lock()
 		*childSize += size
@@ -207,19 +190,7 @@ func (w *walker) recurse(parentDir, childPath string, wg *sync.WaitGroup, childM
 		if parentDir == w.root {
 			w.rootChildren.Add(FolderEntry{Path: childPath, Name: filepath.Base(childPath), Size: size})
 		}
-	}
-
-	select {
-	case w.sem <- struct{}{}:
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
-			defer func() { <-w.sem }()
-			run()
-		}()
-	default:
-		run()
-	}
+	})
 }
 
 func (w *walker) recordIssue(path string, err error) {

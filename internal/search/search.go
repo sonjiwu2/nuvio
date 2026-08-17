@@ -1,12 +1,11 @@
 // Package search performs a live, cancellable filename search across a
-// directory tree. It deliberately mirrors internal/scanner's approach to
-// bounded concurrency and cycle safety (bounded worker pool via a
-// semaphore, reparse points treated as leaves via platform.IsReparsePoint)
-// rather than sharing code with it — the two walkers' data flow differs
-// enough (post-order size rollup vs. streamed match collection) that a
-// shared generic abstraction was not worth the risk of destabilizing
-// scanner's already-tested traversal. If a third walker-shaped feature
-// shows up, that is the point to extract a shared primitive.
+// directory tree. Bounded concurrency and cycle safety (reparse points
+// treated as leaves) come from internal/fswalk, shared with
+// internal/scanner and internal/rules; each package still owns its own
+// walkDir shape because their data flow differs too much to unify further
+// (post-order size rollup vs. streamed match collection vs. rule
+// evaluation) without a generic abstraction that would cost more in
+// complexity than it saves.
 package search
 
 import (
@@ -14,22 +13,13 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"runtime"
 	"strings"
 	"sync"
 	"sync/atomic"
 	"time"
 
-	"github.com/sonjiwu2/nuvio/internal/platform"
+	"github.com/sonjiwu2/nuvio/internal/fswalk"
 )
-
-func defaultWorkerCount() int {
-	n := runtime.NumCPU()
-	if n < 2 {
-		n = 2
-	}
-	return n
-}
 
 type counters struct {
 	files   atomic.Int64
@@ -40,7 +30,7 @@ type counters struct {
 type walker struct {
 	ctx    context.Context
 	cancel context.CancelFunc
-	sem    chan struct{}
+	pool   *fswalk.Pool
 	opts   Options
 	query  string
 
@@ -93,7 +83,7 @@ func Find(
 	w := &walker{
 		ctx:    internalCtx,
 		cancel: cancel,
-		sem:    make(chan struct{}, opts.Workers),
+		pool:   fswalk.NewPool(opts.Workers),
 		opts:   opts,
 		query:  strings.ToLower(opts.Query),
 	}
@@ -139,19 +129,17 @@ func (w *walker) walkDir(dir string) {
 
 		childPath := filepath.Join(dir, entry.Name())
 
-		if entry.IsDir() {
-			reparse, err := platform.IsReparsePoint(childPath)
-			if err != nil {
-				w.recordIssue(childPath, err)
-				continue
-			}
-			if !reparse {
-				w.recurse(childPath, &wg)
-				continue
-			}
-			// A symlink or NTFS junction: fall through and treat it as a
-			// leaf below, same policy as internal/scanner.
+		kind, err := fswalk.Classify(childPath, entry)
+		if err != nil {
+			w.recordIssue(childPath, err)
+			continue
 		}
+		if kind == fswalk.KindDirectory {
+			w.recurse(childPath, &wg)
+			continue
+		}
+		// A file, or a symlink/junction: fall through and treat it as a
+		// leaf below, same policy as internal/scanner.
 
 		info, err := entry.Info()
 		if err != nil {
@@ -174,17 +162,9 @@ func (w *walker) walkDir(dir string) {
 }
 
 func (w *walker) recurse(childPath string, wg *sync.WaitGroup) {
-	select {
-	case w.sem <- struct{}{}:
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
-			defer func() { <-w.sem }()
-			w.walkDir(childPath)
-		}()
-	default:
+	w.pool.Go(wg, func() {
 		w.walkDir(childPath)
-	}
+	})
 }
 
 func (w *walker) addMatch(m Match) {

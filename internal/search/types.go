@@ -1,6 +1,10 @@
 package search
 
-import "time"
+import (
+	"time"
+
+	"github.com/sonjiwu2/nuvio/internal/fswalk"
+)
 
 // Options configures a single search run.
 type Options struct {
@@ -33,7 +37,7 @@ const (
 
 func (o Options) withDefaults() Options {
 	if o.Workers <= 0 {
-		o.Workers = defaultWorkerCount()
+		o.Workers = fswalk.DefaultWorkerCount()
 	}
 	if o.Workers > maxWorkers {
 		o.Workers = maxWorkers
