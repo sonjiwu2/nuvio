@@ -14,6 +14,7 @@ import { Panel } from '../components/primitives/Panel'
 import { ProgressBar } from '../components/primitives/ProgressBar'
 import { ScanIssuesNotice } from '../components/storage/ScanIssuesNotice'
 import { SizeRankedList } from '../components/storage/SizeRankedList'
+import { Treemap } from '../components/storage/Treemap'
 import { formatBytes, formatCount, formatDuration, truncatePath } from '../lib/format'
 import { useScan } from '../lib/useScan'
 import './Storage.css'
@@ -150,6 +151,22 @@ export function Storage() {
           </div>
 
           {result.issues.length > 0 && <ScanIssuesNotice issues={result.issues} />}
+
+          <Panel title="Storage Overview" description="What's inside the folder you scanned">
+            {result.rootChildren.length > 0 ? (
+              <Treemap
+                items={result.rootChildren.map((f) => ({
+                  key: f.path,
+                  label: f.name,
+                  value: f.size,
+                }))}
+              />
+            ) : (
+              <p className="storage-empty-note">
+                Nothing to visualize — the scanned folder is empty.
+              </p>
+            )}
+          </Panel>
 
           <div className="storage-grid">
             <Panel

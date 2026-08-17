@@ -1,0 +1,58 @@
+.treemap {
+  position: relative;
+  width: 100%;
+  height: 320px;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+
+.treemap-cell {
+  position: absolute;
+  border-radius: 4px;
+  padding: var(--space-2) var(--space-3);
+  color: var(--color-text-inverse);
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  overflow: hidden;
+  transition: filter var(--transition-fast);
+}
+
+.treemap-cell:hover {
+  filter: brightness(1.06);
+}
+
+.treemap-cell-label {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.treemap-cell-size {
+  font-size: var(--font-size-xs);
+  opacity: 0.85;
+}
+
+/* Solid, moderately saturated fills — this is the one place in the app
+   that intentionally departs from the light-tint accent pattern, since
+   the blocks themselves need to read as distinct regions at a glance. */
+.treemap-cell--blue {
+  background: var(--color-accent);
+}
+.treemap-cell--teal {
+  background: var(--color-teal);
+}
+.treemap-cell--violet {
+  background: var(--color-violet);
+}
+.treemap-cell--amber {
+  background: var(--color-amber);
+}
+.treemap-cell--rose {
+  background: #d1567b;
+}
+.treemap-cell--slate {
+  background: #64748b;
+}
