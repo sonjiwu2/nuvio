@@ -36,7 +36,7 @@ export const NAV_ITEMS: NavItem[] = [
   { key: 'rules', label: 'Rules', icon: ListChecks, implemented: true },
   { key: 'search', label: 'Search', icon: Search, implemented: true },
   { key: 'storage', label: 'Storage', icon: HardDrive, implemented: true },
-  { key: 'duplicates', label: 'Duplicates', icon: Copy, implemented: false },
+  { key: 'duplicates', label: 'Duplicates', icon: Copy, implemented: true },
   { key: 'cleanup', label: 'Cleanup', icon: Sparkles, implemented: false },
   { key: 'activity', label: 'Activity', icon: Activity, implemented: false },
   { key: 'settings', label: 'Settings', icon: Settings, implemented: false },

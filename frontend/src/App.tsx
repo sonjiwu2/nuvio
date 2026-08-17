@@ -3,6 +3,7 @@ import { useState } from 'react'
 import { AppShell } from './components/layout/AppShell'
 import { NAV_ITEMS, type ScreenKey } from './lib/navigation'
 import { ComingSoon } from './screens/ComingSoon'
+import { Duplicates } from './screens/Duplicates'
 import { Home } from './screens/Home'
 import { Organize } from './screens/Organize'
 import { Rules } from './screens/Rules'
@@ -25,6 +26,7 @@ function renderScreen(active: ScreenKey, onNavigate: (key: ScreenKey) => void) {
   if (active === 'search') return <Search />
   if (active === 'organize') return <Organize onNavigate={onNavigate} />
   if (active === 'rules') return <Rules />
+  if (active === 'duplicates') return <Duplicates />
 
   const item = NAV_ITEMS.find((entry) => entry.key === active)
   return <ComingSoon title={item?.label ?? 'Coming soon'} icon={item?.icon ?? LifeBuoy} />
