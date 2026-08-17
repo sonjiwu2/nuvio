@@ -8,6 +8,7 @@ import (
 	wailsruntime "github.com/wailsapp/wails/v2/pkg/runtime"
 
 	"github.com/sonjiwu2/nuvio/internal/duplicates"
+	"github.com/sonjiwu2/nuvio/internal/operations"
 	"github.com/sonjiwu2/nuvio/internal/rules"
 	"github.com/sonjiwu2/nuvio/internal/scanner"
 	"github.com/sonjiwu2/nuvio/internal/search"
@@ -26,11 +27,14 @@ type App struct {
 	rulesStore *rules.Store
 	previews   *rules.Coordinator
 	dupes      *duplicates.Coordinator
+	journal    *operations.Journal
+	applies    *operations.Coordinator
 }
 
 // NewApp creates a new App application struct. db is Nuvio's single
 // shared SQLite connection, already open and migrated by main.go.
 func NewApp(logger *slog.Logger, db *sql.DB) *App {
+	journal := operations.NewJournal(db)
 	return &App{
 		logger:     logger,
 		scans:      scanner.NewCoordinator(),
@@ -38,6 +42,8 @@ func NewApp(logger *slog.Logger, db *sql.DB) *App {
 		rulesStore: rules.NewStore(db),
 		previews:   rules.NewCoordinator(),
 		dupes:      duplicates.NewCoordinator(),
+		journal:    journal,
+		applies:    operations.NewCoordinator(journal),
 	}
 }
 
