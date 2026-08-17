@@ -3,6 +3,7 @@ import { Button } from '../components/primitives/Button'
 import { EmptyState } from '../components/primitives/EmptyState'
 import { Panel } from '../components/primitives/Panel'
 import { ProgressBar } from '../components/primitives/ProgressBar'
+import { ApplyPanel } from '../components/rules/ApplyPanel'
 import { PreviewEntryList } from '../components/rules/PreviewEntryList'
 import { formatBytes, formatCount } from '../lib/format'
 import type { ScreenKey } from '../lib/navigation'
@@ -57,7 +58,8 @@ export function Organize({ onNavigate }: OrganizeProps) {
 
       <p className="organize-safety-note">
         <ShieldCheck size={14} strokeWidth={2} aria-hidden="true" />
-        Preview only — Nuvio never moves, renames, or deletes a file here.
+        Files only move when you review the list below and click Apply — nothing happens
+        automatically, and every move can be undone.
       </p>
 
       {!rulesLoading && rules.length === 0 && (
@@ -141,6 +143,10 @@ export function Organize({ onNavigate }: OrganizeProps) {
             )
           )}
         </Panel>
+      )}
+
+      {(status === 'completed' || status === 'cancelled') && entries.length > 0 && (
+        <ApplyPanel entries={entries} />
       )}
     </div>
   )
