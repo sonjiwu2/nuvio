@@ -10,6 +10,10 @@ export function CancelDuplicateScan(arg1) {
   return window['go']['main']['App']['CancelDuplicateScan'](arg1);
 }
 
+export function CancelOrganizeApply(arg1) {
+  return window['go']['main']['App']['CancelOrganizeApply'](arg1);
+}
+
 export function CancelOrganizePreview(arg1) {
   return window['go']['main']['App']['CancelOrganizePreview'](arg1);
 }
@@ -38,6 +42,10 @@ export function StartDuplicateScan(arg1) {
   return window['go']['main']['App']['StartDuplicateScan'](arg1);
 }
 
+export function StartOrganizeApply(arg1, arg2) {
+  return window['go']['main']['App']['StartOrganizeApply'](arg1, arg2);
+}
+
 export function StartOrganizePreview(arg1) {
   return window['go']['main']['App']['StartOrganizePreview'](arg1);
 }
@@ -48,4 +56,8 @@ export function StartScan(arg1) {
 
 export function StartSearch(arg1, arg2) {
   return window['go']['main']['App']['StartSearch'](arg1, arg2);
+}
+
+export function UndoBatch(arg1) {
+  return window['go']['main']['App']['UndoBatch'](arg1);
 }
