@@ -102,6 +102,69 @@ func TestWalk_TopFoldersIncludesRecursiveTotals(t *testing.T) {
 	}
 }
 
+func TestWalk_TopFoldersExcludesRootItself(t *testing.T) {
+	root := t.TempDir()
+	writeFile(t, filepath.Join(root, "sub", "a.bin"), 100)
+
+	result, err := Walk(context.Background(), root, Options{}, nil)
+	if err != nil {
+		t.Fatalf("Walk returned error: %v", err)
+	}
+
+	for _, f := range result.TopFolders {
+		if f.Path == root {
+			t.Errorf("TopFolders contains the scanned root %q; it should be excluded (always 100%% by definition)", root)
+		}
+	}
+}
+
+func TestWalk_RootChildrenReflectsDirectChildrenOnly(t *testing.T) {
+	root := t.TempDir()
+	writeFile(t, filepath.Join(root, "big", "a.bin"), 100)
+	writeFile(t, filepath.Join(root, "big", "sub", "b.bin"), 50)
+	writeFile(t, filepath.Join(root, "small", "c.bin"), 10)
+	writeFile(t, filepath.Join(root, "loose.txt"), 5)
+
+	result, err := Walk(context.Background(), root, Options{}, nil)
+	if err != nil {
+		t.Fatalf("Walk returned error: %v", err)
+	}
+
+	sizes := make(map[string]int64, len(result.RootChildren))
+	for _, f := range result.RootChildren {
+		sizes[f.Name] = f.Size
+	}
+
+	if sizes["big"] != 150 {
+		t.Errorf("RootChildren[big] = %d, want 150 (a.bin + nested sub)", sizes["big"])
+	}
+	if sizes["small"] != 10 {
+		t.Errorf("RootChildren[small] = %d, want 10", sizes["small"])
+	}
+	if _, ok := sizes["sub"]; ok {
+		t.Error("RootChildren contains \"sub\", a grandchild of root, not a direct child")
+	}
+	if sizes["Other files"] != 5 {
+		t.Errorf("RootChildren[\"Other files\"] = %d, want 5 (loose.txt sitting directly in root)", sizes["Other files"])
+	}
+}
+
+func TestWalk_RootChildrenOmitsLooseFilesEntryWhenNoneExist(t *testing.T) {
+	root := t.TempDir()
+	writeFile(t, filepath.Join(root, "only", "a.bin"), 10)
+
+	result, err := Walk(context.Background(), root, Options{}, nil)
+	if err != nil {
+		t.Fatalf("Walk returned error: %v", err)
+	}
+
+	for _, f := range result.RootChildren {
+		if f.Name == "Other files" {
+			t.Error("RootChildren contains an \"Other files\" entry even though root has no loose files")
+		}
+	}
+}
+
 func TestWalk_UnreadableDirectoryIsReportedNotFatal(t *testing.T) {
 	if runtime.GOOS == "windows" {
 		t.Skip("chmod-based permission denial is not reliable on Windows")

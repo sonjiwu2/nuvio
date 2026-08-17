@@ -23,6 +23,10 @@ const (
 	defaultTopN             = 20
 	defaultProgressInterval = 150 * time.Millisecond
 	maxWorkers              = 16
+	// rootChildrenCap bounds how many of the scanned root's direct children
+	// are kept for the Storage Overview treemap. A treemap with hundreds of
+	// slices stops being readable long before this limit matters.
+	rootChildrenCap = 24
 )
 
 func (o Options) withDefaults() Options {
@@ -83,8 +87,14 @@ type Result struct {
 	TotalDirs  int64         `json:"totalDirs"`
 	TopFiles   []FileEntry   `json:"topFiles"`
 	TopFolders []FolderEntry `json:"topFolders"`
-	Issues     []ScanIssue   `json:"issues"`
-	Cancelled  bool          `json:"cancelled"`
+	// RootChildren holds the recursive size of each direct child of Root
+	// (plus a synthetic "Other files" entry for files sitting directly in
+	// Root, if any), for the Storage Overview treemap. Unlike TopFolders,
+	// which ranks the largest directories anywhere in the tree, this is
+	// specifically the one-level breakdown of what was scanned.
+	RootChildren []FolderEntry `json:"rootChildren"`
+	Issues       []ScanIssue   `json:"issues"`
+	Cancelled    bool          `json:"cancelled"`
 	// Duration is serialized as nanoseconds (Go's default time.Duration
 	// JSON encoding, i.e. int64) — not milliseconds despite the field name.
 	Duration time.Duration `json:"durationNs"`

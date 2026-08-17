@@ -47,11 +47,13 @@ type walker struct {
 	ctx  context.Context
 	sem  chan struct{}
 	opts Options
+	root string
 
-	counters    counters
-	topFiles    *topK[FileEntry]
-	topFolders  *topK[FolderEntry]
-	currentPath atomic.Pointer[string]
+	counters     counters
+	topFiles     *topK[FileEntry]
+	topFolders   *topK[FolderEntry]
+	rootChildren *topK[FolderEntry]
+	currentPath  atomic.Pointer[string]
 
 	issuesMu sync.Mutex
 	issues   []ScanIssue
@@ -76,11 +78,13 @@ func Walk(ctx context.Context, root string, opts Options, onProgress func(Progre
 	}
 
 	w := &walker{
-		ctx:        ctx,
-		sem:        make(chan struct{}, opts.Workers),
-		opts:       opts,
-		topFiles:   newTopK[FileEntry](opts.TopN),
-		topFolders: newTopK[FolderEntry](opts.TopN),
+		ctx:          ctx,
+		sem:          make(chan struct{}, opts.Workers),
+		opts:         opts,
+		root:         root,
+		topFiles:     newTopK[FileEntry](opts.TopN),
+		topFolders:   newTopK[FolderEntry](opts.TopN),
+		rootChildren: newTopK[FolderEntry](rootChildrenCap),
 	}
 
 	stopProgress := w.startProgressReporter(onProgress)
@@ -88,15 +92,16 @@ func Walk(ctx context.Context, root string, opts Options, onProgress func(Progre
 	stopProgress()
 
 	return Result{
-		Root:       root,
-		TotalSize:  w.counters.bytes.Load(),
-		TotalFiles: w.counters.files.Load(),
-		TotalDirs:  w.counters.dirs.Load(),
-		TopFiles:   w.topFiles.Sorted(),
-		TopFolders: w.topFolders.Sorted(),
-		Issues:     w.issuesSnapshot(),
-		Cancelled:  ctx.Err() != nil,
-		Duration:   time.Since(started),
+		Root:         root,
+		TotalSize:    w.counters.bytes.Load(),
+		TotalFiles:   w.counters.files.Load(),
+		TotalDirs:    w.counters.dirs.Load(),
+		TopFiles:     w.topFiles.Sorted(),
+		TopFolders:   w.topFolders.Sorted(),
+		RootChildren: w.rootChildren.Sorted(),
+		Issues:       w.issuesSnapshot(),
+		Cancelled:    ctx.Err() != nil,
+		Duration:     time.Since(started),
 	}, nil
 }
 
@@ -142,7 +147,7 @@ func (w *walker) walkDir(dir string) int64 {
 				continue
 			}
 			if !reparse {
-				w.recurse(childPath, &wg, &childMu, &childSize)
+				w.recurse(dir, childPath, &wg, &childMu, &childSize)
 				continue
 			}
 			// A symlink or NTFS junction: record it as a leaf entry below
@@ -172,30 +177,48 @@ func (w *walker) walkDir(dir string) int64 {
 
 	wg.Wait()
 
+	if dir == w.root && localSize > 0 {
+		// Files sitting directly in the scanned root, not inside any
+		// subdirectory, get their own treemap slice instead of silently
+		// vanishing from the Storage Overview.
+		w.rootChildren.Add(FolderEntry{Path: dir, Name: "Other files", Size: localSize})
+	}
+
 	total := localSize + childSize
-	w.topFolders.Add(FolderEntry{Path: dir, Name: filepath.Base(dir), Size: total})
+	if dir != w.root {
+		// The root itself is excluded: it would always be the single
+		// largest "folder" by definition (100% of the total), which tells
+		// the user nothing they don't already see in the summary metrics.
+		w.topFolders.Add(FolderEntry{Path: dir, Name: filepath.Base(dir), Size: total})
+	}
 	return total
 }
 
 // recurse walks childPath, running it on a pooled goroutine when the
-// worker semaphore has capacity and inline otherwise.
-func (w *walker) recurse(childPath string, wg *sync.WaitGroup, childMu *sync.Mutex, childSize *int64) {
+// worker semaphore has capacity and inline otherwise. parentDir is used
+// only to detect direct children of the scanned root for the Storage
+// Overview treemap.
+func (w *walker) recurse(parentDir, childPath string, wg *sync.WaitGroup, childMu *sync.Mutex, childSize *int64) {
+	run := func() {
+		size := w.walkDir(childPath)
+		childMu.Lock()
+		*childSize += size
+		childMu.Unlock()
+		if parentDir == w.root {
+			w.rootChildren.Add(FolderEntry{Path: childPath, Name: filepath.Base(childPath), Size: size})
+		}
+	}
+
 	select {
 	case w.sem <- struct{}{}:
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
 			defer func() { <-w.sem }()
-			size := w.walkDir(childPath)
-			childMu.Lock()
-			*childSize += size
-			childMu.Unlock()
+			run()
 		}()
 	default:
-		size := w.walkDir(childPath)
-		childMu.Lock()
-		*childSize += size
-		childMu.Unlock()
+		run()
 	}
 }
 
