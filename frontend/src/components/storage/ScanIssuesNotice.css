@@ -1,0 +1,47 @@
+.scan-issues {
+  border: 1px solid var(--color-warning);
+  background: var(--color-warning-bg);
+  border-radius: var(--radius-md);
+  padding: var(--space-3) var(--space-4);
+}
+
+.scan-issues-summary {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  cursor: pointer;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-primary);
+  list-style: none;
+}
+
+.scan-issues-summary::-webkit-details-marker {
+  display: none;
+}
+
+.scan-issues-list {
+  list-style: none;
+  margin: var(--space-3) 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  max-height: 220px;
+  overflow-y: auto;
+}
+
+.scan-issues-list li {
+  display: flex;
+  flex-direction: column;
+  font-size: var(--font-size-xs);
+}
+
+.scan-issues-path {
+  color: var(--color-text-primary);
+  word-break: break-all;
+}
+
+.scan-issues-error {
+  color: var(--color-text-secondary);
+}
