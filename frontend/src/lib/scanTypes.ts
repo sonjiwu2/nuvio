@@ -37,6 +37,7 @@ export interface ScanResult {
   totalDirs: number
   topFiles: ScanFileEntry[]
   topFolders: ScanFolderEntry[]
+  rootChildren: ScanFolderEntry[]
   issues: ScanIssue[]
   cancelled: boolean
   durationNs: number
