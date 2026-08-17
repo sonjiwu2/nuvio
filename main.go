@@ -55,7 +55,7 @@ func run() error {
 		}
 	}()
 
-	app := NewApp(logger)
+	app := NewApp(logger, db)
 	logger.Info("nuvio started")
 
 	return wails.Run(&options.App{

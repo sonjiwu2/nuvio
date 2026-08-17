@@ -2,10 +2,12 @@ package main
 
 import (
 	"context"
+	"database/sql"
 	"log/slog"
 
 	wailsruntime "github.com/wailsapp/wails/v2/pkg/runtime"
 
+	"github.com/sonjiwu2/nuvio/internal/rules"
 	"github.com/sonjiwu2/nuvio/internal/scanner"
 	"github.com/sonjiwu2/nuvio/internal/search"
 )
@@ -16,18 +18,23 @@ import (
 // in their own app_<feature>.go file (app_scan.go, app_search.go, ...) to
 // keep this file from becoming a dumping ground as Nuvio grows.
 type App struct {
-	ctx     context.Context
-	logger  *slog.Logger
-	scans   *scanner.Coordinator
-	searchC *search.Coordinator
+	ctx        context.Context
+	logger     *slog.Logger
+	scans      *scanner.Coordinator
+	searchC    *search.Coordinator
+	rulesStore *rules.Store
+	previews   *rules.Coordinator
 }
 
-// NewApp creates a new App application struct.
-func NewApp(logger *slog.Logger) *App {
+// NewApp creates a new App application struct. db is Nuvio's single
+// shared SQLite connection, already open and migrated by main.go.
+func NewApp(logger *slog.Logger, db *sql.DB) *App {
 	return &App{
-		logger:  logger,
-		scans:   scanner.NewCoordinator(),
-		searchC: search.NewCoordinator(),
+		logger:     logger,
+		scans:      scanner.NewCoordinator(),
+		searchC:    search.NewCoordinator(),
+		rulesStore: rules.NewStore(db),
+		previews:   rules.NewCoordinator(),
 	}
 }
 
