@@ -24,13 +24,28 @@ func Apply(
 	opts Options,
 	onProgress func(Progress),
 ) (Result, error) {
-	started := time.Now()
-	opts = opts.withDefaults()
-
 	batchID, err := newID()
 	if err != nil {
 		return Result{}, err
 	}
+	return applyBatch(ctx, journal, batchID, items, opts, onProgress)
+}
+
+// applyBatch does the real work of Apply against a caller-chosen batchID.
+// It exists separately so Coordinator can generate the id itself — once,
+// up front — and have it be simultaneously the id it tracks for
+// cancellation, the id returned to its caller, and the id the journal
+// actually records under, rather than three IDs that could drift apart.
+func applyBatch(
+	ctx context.Context,
+	journal *Journal,
+	batchID string,
+	items []MoveItem,
+	opts Options,
+	onProgress func(Progress),
+) (Result, error) {
+	started := time.Now()
+	opts = opts.withDefaults()
 
 	pool := fswalk.NewPool(opts.Workers)
 	var wg sync.WaitGroup
