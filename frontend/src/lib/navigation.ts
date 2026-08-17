@@ -34,7 +34,7 @@ export const NAV_ITEMS: NavItem[] = [
   { key: 'home', label: 'Home', icon: Home, implemented: true },
   { key: 'organize', label: 'Organize', icon: FolderKanban, implemented: false },
   { key: 'rules', label: 'Rules', icon: ListChecks, implemented: false },
-  { key: 'search', label: 'Search', icon: Search, implemented: false },
+  { key: 'search', label: 'Search', icon: Search, implemented: true },
   { key: 'storage', label: 'Storage', icon: HardDrive, implemented: true },
   { key: 'duplicates', label: 'Duplicates', icon: Copy, implemented: false },
   { key: 'cleanup', label: 'Cleanup', icon: Sparkles, implemented: false },
